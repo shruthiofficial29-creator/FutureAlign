@@ -1,0 +1,1701 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FutureAlign — RPL Skill Assessment (MSDE)</title>
+<style>
+  :root{
+    --bg:#0b1220; --card:#152238; --card2:#1b2b45; --line:#26374f;
+    --txt:#e8eef7; --muted:#8fa3bd;
+    --acc:#00d4a0; --acc2:#ffb020; --blue:#4d9dff; --danger:#ff5c6c;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{
+    font-family:'Segoe UI',system-ui,-apple-system,'Noto Sans Tamil','Noto Sans Devanagari','Noto Sans Telugu',sans-serif;
+    background:
+      radial-gradient(1100px 600px at 8% -10%, #16324f 0%, transparent 60%),
+      radial-gradient(900px 500px at 100% 0%, #0d3b34 0%, transparent 55%),
+      var(--bg);
+    color:var(--txt); min-height:100vh; line-height:1.5;
+    -webkit-font-smoothing:antialiased;
+  }
+
+  /* ---------- TOP BAR ---------- */
+  .topbar{
+    display:flex; align-items:center; justify-content:space-between; gap:16px;
+    padding:14px 22px; border-bottom:1px solid var(--line);
+    background:rgba(11,18,32,.82); backdrop-filter:blur(10px);
+    position:sticky; top:0; z-index:50; flex-wrap:wrap;
+  }
+  .brand{display:flex; align-items:center; gap:12px}
+  .logo{
+    width:42px;height:42px;border-radius:12px;display:grid;place-items:center;
+    background:linear-gradient(135deg,var(--acc),#0a8f76); color:#04170f;
+    font-weight:900; font-size:20px; box-shadow:0 6px 20px rgba(0,212,160,.28);
+  }
+  .brand h1{font-size:17px;letter-spacing:.3px}
+  .brand p{font-size:11px;color:var(--muted)}
+  .topright{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+  .pill{
+    font-size:11px;font-weight:700;padding:6px 12px;border-radius:999px;
+    border:1px solid var(--line); background:var(--card); color:var(--muted);
+    display:flex; align-items:center; gap:6px; white-space:nowrap;
+  }
+  .pill.live{color:#7dffd4;border-color:#12604c;background:#0c2a24}
+  .pill.edge{color:#ffd98a;border-color:#5c431a;background:#2a2110}
+  .dot{width:7px;height:7px;border-radius:50%;background:var(--acc);animation:pulse 1.4s infinite}
+  @keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.35;transform:scale(.75)}}
+  select{
+    background:var(--card); color:var(--txt); border:1px solid var(--line);
+    padding:7px 10px; border-radius:9px; font-size:12px; font-weight:600; cursor:pointer; outline:none;
+  }
+
+  /* ---------- STEPPER ---------- */
+  .stepper{
+    display:flex; gap:6px; padding:12px 22px; overflow-x:auto;
+    border-bottom:1px solid var(--line); background:rgba(17,28,48,.5);
+  }
+  .step{
+    display:flex; align-items:center; gap:8px; font-size:12px; font-weight:600;
+    color:var(--muted); padding:7px 14px; border-radius:999px; white-space:nowrap;
+    border:1px solid transparent; transition:.25s;
+  }
+  .step .num{
+    width:20px;height:20px;border-radius:50%;display:grid;place-items:center;
+    font-size:11px;background:var(--card2);color:var(--muted);border:1px solid var(--line);
+  }
+  .step.active{color:var(--acc);border-color:#12604c;background:#0c2a24}
+  .step.active .num{background:var(--acc);color:#04170f;border-color:var(--acc)}
+  .step.done{color:#8be8cf}
+  .step.done .num{background:#12604c;color:#c9fff0;border-color:#12604c}
+
+  /* ---------- LAYOUT ---------- */
+  main{max-width:1080px;margin:0 auto;padding:28px 20px 80px}
+  .screen{display:none;animation:fade .35s ease}
+  .screen.active{display:block}
+  @keyframes fade{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+
+  .card{
+    background:linear-gradient(180deg,var(--card),#101b2e);
+    border:1px solid var(--line); border-radius:18px; padding:22px;
+    box-shadow:0 18px 40px rgba(0,0,0,.28);
+  }
+  h2{font-size:clamp(22px,3.4vw,34px);line-height:1.2;letter-spacing:-.4px}
+  h3{font-size:17px;margin-bottom:6px}
+  .muted{color:var(--muted);font-size:13.5px}
+
+  .btn{
+    border:none;cursor:pointer;font-family:inherit;font-weight:700;font-size:14px;
+    padding:13px 24px;border-radius:12px; transition:.2s; display:inline-flex;
+    align-items:center; gap:8px; justify-content:center;
+  }
+  .btn.primary{background:linear-gradient(135deg,var(--acc),#00a37c);color:#04170f;box-shadow:0 8px 24px rgba(0,212,160,.25)}
+  .btn.primary:hover{transform:translateY(-2px);box-shadow:0 12px 30px rgba(0,212,160,.35)}
+  .btn.ghost{background:var(--card2);color:var(--txt);border:1px solid var(--line)}
+  .btn.ghost:hover{border-color:var(--acc);color:var(--acc)}
+  .btn:disabled{opacity:.45;cursor:not-allowed;transform:none}
+  .btn.wide{width:100%}
+
+  /* ---------- HERO ---------- */
+  .hero{
+    text-align:center;padding:44px 20px 36px;
+    background:radial-gradient(600px 240px at 50% 0%, rgba(0,212,160,.12), transparent 70%);
+    border-radius:22px;border:1px solid var(--line);margin-bottom:22px;
+  }
+  .hero p{margin:14px auto 22px;max-width:620px;color:var(--muted);font-size:15px}
+  .badge-row{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-bottom:16px}
+  .badge{font-size:11px;font-weight:700;padding:5px 12px;border-radius:999px;background:#0c2a24;color:#7dffd4;border:1px solid #12604c}
+
+  .featgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:14px;margin-bottom:22px}
+  .feat{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:18px;transition:.25s}
+  .feat:hover{border-color:var(--acc);transform:translateY(-3px)}
+  .feat .fi{font-size:24px;margin-bottom:8px}
+  .feat p{font-size:12.5px;color:var(--muted);margin-top:4px}
+
+  /* ---------- FORM ---------- */
+  .field{margin-bottom:16px}
+  .field label{display:block;font-size:12.5px;font-weight:700;color:var(--muted);margin-bottom:7px;letter-spacing:.3px}
+  .field input,.field select,.field textarea{
+    width:100%;padding:13px 14px;border-radius:11px;border:1px solid var(--line);
+    background:#0d1728;color:var(--txt);font-family:inherit;font-size:14px;outline:none;transition:.2s;
+  }
+  .field input:focus,.field select:focus,.field textarea:focus{border-color:var(--acc);box-shadow:0 0 0 3px rgba(0,212,160,.12)}
+  .row2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  @media(max-width:640px){.row2{grid-template-columns:1fr}}
+
+  .trade-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;margin-bottom:16px}
+  .trade{
+    border:1.5px solid var(--line);border-radius:14px;padding:16px 10px;text-align:center;
+    cursor:pointer;background:#0d1728;transition:.2s;
+  }
+  .trade:hover{border-color:#2f5a80}
+  .trade.sel{border-color:var(--acc);background:#0c2a24;box-shadow:0 0 0 3px rgba(0,212,160,.12)}
+  .trade .ti{font-size:26px}
+  .trade .tn{font-size:12.5px;font-weight:700;margin-top:6px}
+
+  /* ---------- VOICE ---------- */
+  .qhead{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:14px;flex-wrap:wrap}
+  .qnum{font-size:12px;font-weight:800;color:var(--acc);background:#0c2a24;padding:5px 12px;border-radius:999px;border:1px solid #12604c}
+  .qtext{font-size:19px;font-weight:600;line-height:1.5;margin-bottom:18px}
+  .micwrap{display:flex;flex-direction:column;align-items:center;gap:12px;margin:18px 0}
+  .mic{
+    width:96px;height:96px;border-radius:50%;border:none;cursor:pointer;font-size:34px;
+    background:linear-gradient(135deg,#1e3a5c,#152238);color:var(--txt);
+    border:2px solid var(--line); transition:.25s; display:grid;place-items:center;
+  }
+  .mic:hover{border-color:var(--acc)}
+  .mic.on{
+    background:linear-gradient(135deg,#ff4d6d,#c9184a);border-color:#ff8fa3;
+    animation:ring 1.3s infinite;
+  }
+  @keyframes ring{
+    0%{box-shadow:0 0 0 0 rgba(255,77,109,.55)}
+    70%{box-shadow:0 0 0 22px rgba(255,77,109,0)}
+    100%{box-shadow:0 0 0 0 rgba(255,77,109,0)}
+  }
+  .wavebars{display:flex;gap:4px;align-items:flex-end;height:28px}
+  .wavebars span{width:5px;background:var(--acc);border-radius:3px;height:8px;animation:wv 1s infinite ease-in-out}
+  .wavebars span:nth-child(2){animation-delay:.1s}
+  .wavebars span:nth-child(3){animation-delay:.2s}
+  .wavebars span:nth-child(4){animation-delay:.3s}
+  .wavebars span:nth-child(5){animation-delay:.4s}
+  .wavebars span:nth-child(6){animation-delay:.5s}
+  .wavebars span:nth-child(7){animation-delay:.6s}
+  @keyframes wv{0%,100%{height:8px}50%{height:26px}}
+
+  /* ---------- VIDEO ---------- */
+  .dropzone{
+    border:2px dashed var(--line);border-radius:16px;padding:34px 20px;text-align:center;
+    cursor:pointer;transition:.25s;background:#0d1728;
+  }
+  .dropzone:hover,.dropzone.over{border-color:var(--acc);background:#0c2a24}
+  .dropzone .dz{font-size:36px;margin-bottom:8px}
+  .mediabox{position:relative;width:100%;aspect-ratio:16/9;border-radius:16px;overflow:hidden;background:#08111f;border:1px solid var(--line)}
+  .mediabox video,.mediabox canvas{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+  .scanbar{
+    position:absolute;left:0;right:0;height:3px;background:linear-gradient(90deg,transparent,var(--acc),transparent);
+    animation:scan 2.4s linear infinite;box-shadow:0 0 18px var(--acc);
+  }
+  @keyframes scan{0%{top:0}100%{top:100%}}
+
+  .analysis-list{list-style:none;margin-top:16px;display:grid;gap:8px}
+  .analysis-list li{
+    display:flex;align-items:center;gap:10px;font-size:13px;color:var(--muted);
+    padding:9px 13px;border-radius:10px;background:#0d1728;border:1px solid var(--line);transition:.3s;
+  }
+  .analysis-list li.active{color:var(--acc2);border-color:#5c431a;background:#2a2110}
+  .analysis-list li.done{color:#8be8cf;border-color:#12604c;background:#0c2a24}
+  .analysis-list li .tick{width:16px;text-align:center}
+
+  /* ---------- QUIZ ---------- */
+  .opts{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px;margin-top:16px}
+  .opt{
+    background:#0d1728;border:1.5px solid var(--line);border-radius:14px;padding:14px;
+    cursor:pointer;transition:.2s;text-align:center;
+  }
+  .opt:hover{border-color:#2f5a80;transform:translateY(-3px)}
+  .opt.correct{border-color:var(--acc);background:#0c2a24;box-shadow:0 0 0 3px rgba(0,212,160,.15)}
+  .opt.wrong{border-color:var(--danger);background:#2a1017}
+  .opt svg{width:100%;height:120px;display:block;margin-bottom:8px}
+  .opt .ol{font-size:12.5px;font-weight:700}
+  .explain{margin-top:14px;padding:12px 14px;border-radius:11px;font-size:13px;display:none}
+  .explain.show{display:block}
+  .explain.ok{background:#0c2a24;border:1px solid #12604c;color:#8be8cf}
+  .explain.no{background:#2a1017;border:1px solid #6b2130;color:#ffb3bf}
+
+  /* ---------- RESULTS ---------- */
+  .scorehero{display:flex;gap:26px;align-items:center;flex-wrap:wrap;justify-content:center;text-align:center}
+  .ring{
+    width:170px;height:170px;border-radius:50%;display:grid;place-items:center;position:relative;flex-shrink:0;
+    background:conic-gradient(var(--acc) var(--p), #1c2b42 0);
+  }
+  .ring::after{
+    content:'';position:absolute;inset:12px;border-radius:50%;background:#101b2e;border:1px solid var(--line);
+  }
+  .ring .val{position:relative;z-index:2}
+  .ring .val b{font-size:42px;display:block;line-height:1}
+  .ring .val span{font-size:11px;color:var(--muted);letter-spacing:1.4px;font-weight:700}
+
+  .bars{display:grid;gap:12px;margin-top:6px;width:100%;max-width:520px}
+  .bar-item .bl{display:flex;justify-content:space-between;font-size:12.5px;margin-bottom:6px;font-weight:600}
+  .bar-item .bl span:last-child{color:var(--acc);font-weight:800}
+  .track{height:9px;border-radius:99px;background:#1c2b42;overflow:hidden}
+  .fill{height:100%;border-radius:99px;background:linear-gradient(90deg,var(--acc),#00a37c);width:0;transition:width 1s ease}
+  .fill.warn{background:linear-gradient(90deg,var(--acc2),#d98c00)}
+  .fill.bad{background:linear-gradient(90deg,var(--danger),#c9184a)}
+
+  .grid3{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:16px;margin-top:18px}
+  .chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+  .chip{font-size:11.5px;font-weight:700;padding:7px 12px;border-radius:99px;background:#2a1017;color:#ffb3bf;border:1px solid #6b2130}
+  .chip.good{background:#0c2a24;color:#8be8cf;border-color:#12604c}
+
+  .micro{display:flex;gap:12px;align-items:center;padding:12px;border-radius:12px;background:#0d1728;border:1px solid var(--line);margin-top:10px}
+  .micro .thumb{
+    width:56px;height:42px;border-radius:9px;background:linear-gradient(135deg,#1e3a5c,#0c2a24);
+    display:grid;place-items:center;font-size:18px;flex-shrink:0;border:1px solid var(--line);
+  }
+  .micro .mt{font-size:12.5px;font-weight:700}
+  .micro .ms{font-size:11px;color:var(--muted)}
+
+  /* certificate */
+  .cert{
+    background:linear-gradient(160deg,#f7fbff,#e4eef8);color:#0b2035;border-radius:18px;
+    padding:26px;position:relative;overflow:hidden;border:1px solid #c3d6e6;
+  }
+  .cert::before{
+    content:'';position:absolute;top:-70px;right:-70px;width:220px;height:220px;border-radius:50%;
+    background:radial-gradient(circle,rgba(0,163,124,.22),transparent 70%);
+  }
+  .cert .ctop{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;flex-wrap:wrap}
+  .cert h3{font-size:20px;color:#0b2035;margin:0}
+  .cert .csub{font-size:11px;letter-spacing:1.6px;font-weight:800;color:#0a8f76;text-transform:uppercase}
+  .cert .cname{font-size:26px;font-weight:900;margin:16px 0 4px;letter-spacing:-.5px}
+  .cert .crole{font-size:14px;font-weight:700;color:#0a8f76}
+  .cert .cmeta{display:flex;gap:22px;flex-wrap:wrap;margin-top:18px;font-size:11.5px;color:#4a6480}
+  .cert .cmeta b{display:block;color:#0b2035;font-size:13px;font-weight:800;margin-top:2px}
+  .cert canvas{border-radius:10px;background:#fff;padding:5px;border:1px solid #c3d6e6;width:104px;height:104px}
+  .cert .cqr{display:flex;align-items:center;gap:12px;margin-top:16px}
+  .cert .cqr small{font-size:10.5px;color:#4a6480;line-height:1.4}
+
+  .job{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:13px;border-radius:12px;background:#0d1728;border:1px solid var(--line);margin-top:10px;flex-wrap:wrap}
+  .job .jt{font-size:13.5px;font-weight:700}
+  .job .jc{font-size:11.5px;color:var(--muted)}
+  .job .js{font-size:12px;font-weight:800;color:var(--acc2);white-space:nowrap}
+
+  .actions{display:flex;gap:12px;flex-wrap:wrap;margin-top:22px}
+  footer{text-align:center;padding:26px 20px;color:var(--muted);font-size:11.5px;border-top:1px solid var(--line)}
+  .toast{
+    position:fixed;bottom:24px;left:50%;transform:translate(-50%,120%);
+    background:var(--card2);border:1px solid var(--acc);color:var(--txt);
+    padding:12px 20px;border-radius:12px;font-size:13px;font-weight:600;z-index:200;
+    transition:.35s;box-shadow:0 12px 34px rgba(0,0,0,.4);
+  }
+  .toast.show{transform:translate(-50%,0)}
+  .hint{font-size:11.5px;color:var(--muted);margin-top:8px;text-align:center}
+</style>
+</head>
+<body>
+
+<!-- ================= TOP BAR ================= -->
+<header class="topbar">
+  <div class="brand">
+    <div class="logo">◆</div>
+    <div>
+      <h1>FutureAlign</h1>
+      <p data-i18n="tagline">AI-Assisted Skill Assessment for RPL · MSDE</p>
+    </div>
+  </div>
+  <div class="topright">
+    <div class="pill live"><span class="dot"></span><span data-i18n="proctor">Proctoring Active</span></div>
+    <div class="pill edge">⚡ <span data-i18n="edge">Edge AI · Low Bandwidth</span></div>
+    <select id="langSel">
+      <option value="en">English</option>
+      <option value="ta">தமிழ்</option>
+      <option value="hi">हिन्दी</option>
+      <option value="te">తెలుగు</option>
+    </select>
+  </div>
+</header>
+
+<!-- ================= STEPPER ================= -->
+<nav class="stepper" id="stepper">
+  <div class="step" data-step="1"><span class="num">1</span><span data-i18n="s1">Register</span></div>
+  <div class="step" data-step="2"><span class="num">2</span><span data-i18n="s2">Voice Test</span></div>
+  <div class="step" data-step="3"><span class="num">3</span><span data-i18n="s3">Practical Video</span></div>
+  <div class="step" data-step="4"><span class="num">4</span><span data-i18n="s4">Visual Quiz</span></div>
+  <div class="step" data-step="5"><span class="num">5</span><span data-i18n="s5">Certificate</span></div>
+</nav>
+
+<main>
+
+  <!-- ================= SCREEN 1 : HOME / REGISTER ================= -->
+  <section class="screen active" id="scr-home">
+    <div class="hero">
+      <div class="badge-row">
+        <span class="badge">🎙️ Voice-First</span>
+        <span class="badge">👁️ Computer Vision</span>
+        <span class="badge">📶 2G/3G Ready</span>
+        <span class="badge">🔒 Fraud-Proof</span>
+      </div>
+      <h2 data-i18n="heroTitle">Get certified for the skills you already have</h2>
+      <p data-i18n="heroSub">Voice-first, video-based AI assessment in your own language. No writing. No jargon. No bias.</p>
+      <button class="btn primary" id="startBtn" data-i18n="startBtn">Start Assessment</button>
+    </div>
+
+    <div class="featgrid">
+      <div class="feat"><div class="fi">🎙️</div><h3 data-i18n="f1t">Voice-First</h3><p data-i18n="f1d">Answer by speaking in Tamil, Hindi, Telugu or English.</p></div>
+      <div class="feat"><div class="fi">🎥</div><h3 data-i18n="f2t">Video Practical</h3><p data-i18n="f2d">Record your work — AI checks tools, steps and PPE.</p></div>
+      <div class="feat"><div class="fi">📶</div><h3 data-i18n="f3t">Low Bandwidth</h3><p data-i18n="f3d">On-device Edge AI works on 2G / 3G rural networks.</p></div>
+      <div class="feat"><div class="fi">🛡️</div><h3 data-i18n="f4t">Tamper-Proof</h3><p data-i18n="f4d">QR-verified digital certificate accepted by employers.</p></div>
+    </div>
+
+    <div class="card" id="regCard">
+      <h3 data-i18n="formTitle">Worker Registration</h3>
+      <p class="muted" style="margin-bottom:18px" data-i18n="formSub">Fill your details. Assessment takes about 12 minutes.</p>
+
+      <div class="field">
+        <label data-i18n="nameL">Full Name</label>
+        <input id="inName" type="text" data-i18n-ph="nameP" placeholder="e.g. Murugan S">
+      </div>
+
+      <div class="field">
+        <label data-i18n="tradeL">Trade / Skill</label>
+        <div class="trade-grid" id="tradeGrid"></div>
+      </div>
+
+      <div class="row2">
+        <div class="field">
+          <label data-i18n="idL">ID Number (Aadhaar / Voter ID)</label>
+          <input id="inId" type="text" data-i18n-ph="idP" placeholder="XXXX XXXX 1234">
+        </div>
+        <div class="field">
+          <label data-i18n="expL">Years of Experience</label>
+          <input id="inExp" type="number" min="0" max="50" value="5">
+        </div>
+      </div>
+
+      <button class="btn primary wide" id="beginBtn" style="margin-top:6px" data-i18n="beginBtn">Begin Assessment</button>
+      <p class="hint" data-i18n="privacyNote">🔒 Your video and voice data are processed on-device. Only scores are uploaded.</p>
+    </div>
+  </section>
+
+  <!-- ================= SCREEN 2 : VOICE ================= -->
+  <section class="screen" id="scr-voice">
+    <div class="card">
+      <div class="qhead">
+        <div>
+          <h3 data-i18n="voiceTitle">Voice Skill Assessment</h3>
+          <p class="muted" data-i18n="voiceSub">The AI bot will ask questions. Answer by speaking — no writing needed.</p>
+        </div>
+        <div class="qnum" id="vQNum">1 / 3</div>
+      </div>
+
+      <div class="qtext" id="vQText">—</div>
+
+      <button class="btn ghost" id="speakBtn">🔊 <span data-i18n="speakBtn">Read Question Aloud</span></button>
+
+      <div class="micwrap">
+        <button class="mic" id="micBtn">🎤</button>
+        <div class="wavebars" id="wave" style="display:none">
+          <span></span><span></span><span></span><span></span><span></span><span></span><span></span>
+        </div>
+        <div class="muted" id="micLabel" data-i18n="micStart">Tap to speak</div>
+      </div>
+
+      <div class="field">
+        <label data-i18n="transcriptL">Your Answer (voice → text)</label>
+        <textarea id="vTranscript" rows="4" data-i18n-ph="transcriptPh" placeholder="Your spoken words will appear here… you can also type."></textarea>
+      </div>
+
+      <div class="actions">
+        <button class="btn primary" id="vSubmit" data-i18n="submit">Submit &amp; Next →</button>
+        <button class="btn ghost" id="vSkip" data-i18n="skip">Skip</button>
+      </div>
+      <p class="hint" data-i18n="voiceHint">💡 Tip: Mention tools, safety steps and the order of work for a higher score.</p>
+    </div>
+  </section>
+
+  <!-- ================= SCREEN 3 : VIDEO ================= -->
+  <section class="screen" id="scr-video">
+    <div class="card">
+      <h3 data-i18n="videoTitle">Practical Work Demonstration</h3>
+      <p class="muted" style="margin-bottom:16px" data-i18n="videoSub">Upload a short video of you doing the task. AI analyses your technique and safety gear.</p>
+
+      <div class="mediabox" id="mediaBox" style="display:none">
+        <video id="vidEl" playsinline muted loop></video>
+        <canvas id="vCanvas"></canvas>
+        <div class="scanbar" id="scanbar"></div>
+      </div>
+
+      <div class="dropzone" id="dropzone">
+        <div class="dz">🎥</div>
+        <div style="font-weight:700;font-size:14px" data-i18n="dropTitle">Drop video here or tap to upload</div>
+        <div class="muted" style="margin-top:4px" data-i18n="dropSub">MP4 / MOV · 30–90 seconds</div>
+        <input type="file" id="fileInput" accept="video/*" hidden>
+      </div>
+
+      <div class="actions">
+        <button class="btn ghost" id="sampleBtn">▶ <span data-i18n="sample">Use Demo Clip</span></button>
+        <button class="btn primary" id="analyzeBtn" disabled>🤖 <span data-i18n="analyze">Run AI Analysis</span></button>
+      </div>
+
+      <ul class="analysis-list" id="analysisList">
+        <li data-k="v1"><span class="tick">○</span><span data-i18n="v1">Extracting keyframes from video…</span></li>
+        <li data-k="v2"><span class="tick">○</span><span data-i18n="v2">YOLOv8 object detection — tools &amp; equipment…</span></li>
+        <li data-k="v3"><span class="tick">○</span><span data-i18n="v3">MediaPipe pose estimation — work technique…</span></li>
+        <li data-k="v4"><span class="tick">○</span><span data-i18n="v4">PPE compliance check — helmet, gloves, goggles…</span></li>
+        <li data-k="v5"><span class="tick">○</span><span data-i18n="v5">Routing to expert for 30% human verification…</span></li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- ================= SCREEN 4 : QUIZ ================= -->
+  <section class="screen" id="scr-quiz">
+    <div class="card">
+      <div class="qhead">
+        <div>
+          <h3 data-i18n="quizTitle">Visual Skill Quiz</h3>
+          <p class="muted" data-i18n="quizSub">Look at the picture and choose the right answer.</p>
+        </div>
+        <div class="qnum" id="qNum">1 / 3</div>
+      </div>
+
+      <div class="qtext" id="qText">—</div>
+      <button class="btn ghost" id="qSpeak">🔊 <span data-i18n="readAloud">Read Aloud</span></button>
+
+      <div class="opts" id="opts"></div>
+      <div class="explain" id="explain"></div>
+
+      <div class="actions">
+        <button class="btn primary" id="qNext" disabled data-i18n="nextQ">Next →</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= SCREEN 5 : RESULT ================= -->
+  <section class="screen" id="scr-result">
+    <div class="card">
+      <h3 data-i18n="resTitle">Assessment Complete</h3>
+      <p class="muted" style="margin-bottom:22px" data-i18n="resSub">Blended AI + expert scoring · MSDE RPL Framework</p>
+
+      <div class="scorehero">
+        <div class="ring" id="ring" style="--p:0%">
+          <div class="val">
+            <b id="overallScore">0</b>
+            <span data-i18n="overallL">OVERALL</span>
+          </div>
+        </div>
+        <div class="bars" id="bars"></div>
+      </div>
+
+      <div class="grid3">
+        <div class="card" style="background:#0d1728">
+          <h3 data-i18n="gapsT">🎯 Skill Gap Analysis</h3>
+          <p class="muted" data-i18n="gapsS">Areas needing improvement</p>
+          <div class="chips" id="gapChips"></div>
+        </div>
+        <div class="card" style="background:#0d1728">
+          <h3 data-i18n="microT">📚 Micro-Learning (30 sec)</h3>
+          <p class="muted" data-i18n="microS">Auto-generated from your weak modules</p>
+          <div id="microList"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- CERTIFICATE -->
+    <div class="card" style="margin-top:18px">
+      <h3 data-i18n="certT">🎓 Verifiable Digital Certificate</h3>
+      <p class="muted" style="margin-bottom:16px" data-i18n="certS">Tamper-proof · QR instantly verifiable by any employer</p>
+      <div class="cert" id="certBox">
+        <div class="ctop">
+          <div>
+            <div class="csub">Government of India · MSDE</div>
+            <h3 data-i18n="certHead">Recognition of Prior Learning — Skill Certificate</h3>
+          </div>
+          <div style="text-align:right;font-size:11px;color:#4a6480;font-weight:700">
+            <div>NSQF ALIGNED</div>
+            <div id="certId">—</div>
+          </div>
+        </div>
+
+        <div class="cname" id="certName">—</div>
+        <div class="crole" id="certRole">—</div>
+
+        <div class="cmeta">
+          <div>LEVEL<b id="certLevel">—</b></div>
+          <div>SCORE<b id="certScore">—</b></div>
+          <div>ISSUED ON<b id="certDate">—</b></div>
+          <div>VALIDITY<b>Lifetime</b></div>
+        </div>
+
+        <div class="cqr">
+          <canvas id="qrCanvas" width="220" height="220"></canvas>
+          <small data-i18n="qrNote">Scan to verify at<br>skillindia.gov.in/verify</small>
+        </div>
+      </div>
+
+      <div class="actions">
+        <button class="btn primary" id="printBtn">⬇ <span data-i18n="download">Download / Print</span></button>
+        <button class="btn ghost" id="shareBtn">🔗 <span data-i18n="share">Share with Employer</span></button>
+        <button class="btn ghost" id="retakeBtn">↺ <span data-i18n="retake">Retake Assessment</span></button>
+      </div>
+    </div>
+
+    <!-- EMPLOYMENT -->
+    <div class="card" style="margin-top:18px">
+      <h3 data-i18n="jobsT">💼 Employer Connect (NCS + MSME Network)</h3>
+      <p class="muted" data-i18n="jobsS">Jobs matched to your certified skill level</p>
+      <div id="jobList"></div>
+    </div>
+  </section>
+
+</main>
+
+<footer>
+  <div>FutureAlign · Demo Prototype for SIH26242 · Ministry of Skill Development &amp; Entrepreneurship</div>
+  <div style="margin-top:6px;opacity:.7">Voice · Vision · Edge AI · Verifiable Credentials</div>
+</footer>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* =========================================================
+   1. LANGUAGE DATA
+   ========================================================= */
+const LANG_MAP = { en:'en-IN', ta:'ta-IN', hi:'hi-IN', te:'te-IN' };
+
+const I18N = {
+  en:{
+    tagline:'AI-Assisted Skill Assessment for RPL · MSDE',
+    proctor:'Proctoring Active', edge:'Edge AI · Low Bandwidth',
+    s1:'Register', s2:'Voice Test', s3:'Practical Video', s4:'Visual Quiz', s5:'Certificate',
+    heroTitle:'Get certified for the skills you already have',
+    heroSub:'Voice-first, video-based AI assessment in your own language. No writing. No jargon. No bias.',
+    startBtn:'Start Assessment',
+    f1t:'Voice-First', f1d:'Answer by speaking in Tamil, Hindi, Telugu or English.',
+    f2t:'Video Practical', f2d:'Record your work — AI checks tools, steps and PPE.',
+    f3t:'Low Bandwidth', f3d:'On-device Edge AI works on 2G / 3G rural networks.',
+    f4t:'Tamper-Proof', f4d:'QR-verified digital certificate accepted by employers.',
+    formTitle:'Worker Registration',
+    formSub:'Fill your details. Assessment takes about 12 minutes.',
+    nameL:'Full Name', nameP:'e.g. Murugan S',
+    tradeL:'Trade / Skill',
+    idL:'ID Number (Aadhaar / Voter ID)', idP:'XXXX XXXX 1234',
+    expL:'Years of Experience',
+    beginBtn:'Begin Assessment',
+    privacyNote:'🔒 Your video and voice data are processed on-device. Only scores are uploaded.',
+    voiceTitle:'Voice Skill Assessment',
+    voiceSub:'The AI bot will ask questions. Answer by speaking — no writing needed.',
+    speakBtn:'Read Question Aloud', micStart:'Tap to speak', micStop:'Listening… tap to stop',
+    transcriptL:'Your Answer (voice → text)',
+    transcriptPh:'Your spoken words will appear here… you can also type.',
+    submit:'Submit & Next →', skip:'Skip',
+    voiceHint:'💡 Tip: Mention tools, safety steps and the order of work for a higher score.',
+    videoTitle:'Practical Work Demonstration',
+    videoSub:'Upload a short video of you doing the task. AI analyses your technique and safety gear.',
+    dropTitle:'Drop video here or tap to upload', dropSub:'MP4 / MOV · 30–90 seconds',
+    sample:'Use Demo Clip', analyze:'Run AI Analysis',
+    v1:'Extracting keyframes from video…',
+    v2:'YOLOv8 object detection — tools & equipment…',
+    v3:'MediaPipe pose estimation — work technique…',
+    v4:'PPE compliance check — helmet, gloves, goggles…',
+    v5:'Routing to expert for 30% human verification…',
+    quizTitle:'Visual Skill Quiz', quizSub:'Look at the picture and choose the right answer.',
+    readAloud:'Read Aloud', nextQ:'Next →', finishQ:'See My Result →',
+    resTitle:'Assessment Complete', resSub:'Blended AI + expert scoring · MSDE RPL Framework',
+    overallL:'OVERALL',
+    bVoice:'Voice / Theory', bPractical:'Practical (Video)', bQuiz:'Visual Quiz',
+    bPPE:'PPE Compliance', bTool:'Tool Handling', bSafety:'Safety Protocol',
+    gapsT:'🎯 Skill Gap Analysis', gapsS:'Areas needing improvement',
+    microT:'📚 Micro-Learning (30 sec)', microS:'Auto-generated from your weak modules',
+    certT:'🎓 Verifiable Digital Certificate', certS:'Tamper-proof · QR instantly verifiable by any employer',
+    certHead:'Recognition of Prior Learning — Skill Certificate',
+    qrNote:'Scan to verify at skillindia.gov.in/verify',
+    download:'Download / Print', share:'Share with Employer', retake:'Retake Assessment',
+    jobsT:'💼 Employer Connect (NCS + MSME Network)', jobsS:'Jobs matched to your certified skill level',
+    apply:'Apply',
+    noGaps:'Excellent! No critical skill gaps found.',
+    levelPrefix:'Level'
+  },
+  ta:{
+    tagline:'RPL-க்கான AI திறன் மதிப்பீட்டு கருவி · MSDE',
+    proctor:'கண்காணிப்பு இயக்கத்தில்', edge:'எட்ஜ் AI · குறைந்த பேண்ட்விட்த்',
+    s1:'பதிவு', s2:'குரல் தேர்வு', s3:'நடைமுறை வீடியோ', s4:'காட்சி வினாடி வினா', s5:'சான்றிதழ்',
+    heroTitle:'உங்களிடம் ஏற்கனவே உள்ள திறமைக்கு சான்றிதழ் பெறுங்கள்',
+    heroSub:'உங்கள் சொந்த மொழியில் குரல் மற்றும் வீடியோ அடிப்படையிலான AI மதிப்பீடு. எழுத வேண்டாம். யாரும் பாகுபாடு இல்லை.',
+    startBtn:'மதிப்பீட்டைத் தொடங்கு',
+    f1t:'குரல் முதன்மை', f1d:'தமிழ், இந்தி, தெலுங்கு அல்லது ஆங்கிலத்தில் பேசி பதில் சொல்லுங்கள்.',
+    f2t:'நடைமுறை வீடியோ', f2d:'உங்கள் வேலையை பதிவு செய்யுங்கள் — AI கருவிகள், பாதுகாப்பு சரிபார்க்கும்.',
+    f3t:'குறைந்த இணையம்', f3d:'2G / 3G கிராமப்புற நெட்வொர்க்கிலும் இயங்கும்.',
+    f4t:'மோசடி தடுப்பு', f4d:'QR மூலம் சரிபார்க்கக்கூடிய டிஜிட்டல் சான்றிதழ்.',
+    formTitle:'தொழிலாளர் பதிவு',
+    formSub:'விவரங்களை நிரப்புங்கள். மதிப்பீடு சுமார் 12 நிமிடம்.',
+    nameL:'முழு பெயர்', nameP:'உ.ம். முருகன் ச',
+    tradeL:'தொழில் / திறன்',
+    idL:'அடையாள எண் (ஆதார் / வாக்காளர் அட்டை)', idP:'XXXX XXXX 1234',
+    expL:'அனுபவ ஆண்டுகள்',
+    beginBtn:'மதிப்பீட்டைத் தொடங்கு',
+    privacyNote:'🔒 உங்கள் வீடியோ மற்றும் குரல் தரவு சாதனத்திலேயே செயலாக்கப்படும்.',
+    voiceTitle:'குரல் திறன் மதிப்பீடு',
+    voiceSub:'AI போட் கேள்விகள் கேட்கும். பேசி பதில் சொல்லுங்கள் — எழுத தேவையில்லை.',
+    speakBtn:'கேள்வியை படித்து காட்டு', micStart:'பேச தட்டவும்', micStop:'கேட்கிறது… நிறுத்த தட்டவும்',
+    transcriptL:'உங்கள் பதில் (குரல் → உரை)',
+    transcriptPh:'நீங்கள் பேசுவது இங்கே தோன்றும்… தட்டச்சு செய்யவும் முடியும்.',
+    submit:'சமர்ப்பித்து அடுத்தது →', skip:'தவிர்',
+    voiceHint:'💡 குறிப்பு: கருவிகள், பாதுகாப்பு நடவடிக்கைகள், வேலை வரிசையை குறிப்பிடுங்கள்.',
+    videoTitle:'நடைமுறை வேலை demonstration',
+    videoSub:'வேலை செய்யும் குறுகிய வீடியோவை பதிவேற்றுங்கள். AI உங்கள் நுட்பத்தை பரிசோதிக்கும்.',
+    dropTitle:'வீடியோவை இங்கே இடுங்கள் அல்லது தட்டவும்', dropSub:'MP4 / MOV · 30–90 விநாடிகள்',
+    sample:'மாதிரி கிளிப்', analyze:'AI பரிசோதனை',
+    v1:'வீடியோவில் இருந்து முக்கிய பிரேம்கள் எடுக்கப்படுகிறது…',
+    v2:'YOLOv8 பொருள் கண்டறிதல் — கருவிகள்…',
+    v3:'MediaPipe போஸ் மதிப்பீடு — வேலை நுட்பம்…',
+    v4:'PPE பாதுகாப்பு சரிபார்ப்பு — ஹெல்மெட், கையுறை…',
+    v5:'நிபுணர் சரிபார்ப்புக்கு (30%) அனுப்பப்படுகிறது…',
+    quizTitle:'காட்சி திறன் வினாடி வினா', quizSub:'படத்தை பார்த்து சரியான பதிலை தேர்ந்தெடுங்கள்.',
+    readAloud:'சத்தமாக படி', nextQ:'அடுத்தது →', finishQ:'முடிவை பார் →',
+    resTitle:'மதிப்பீடு முடிந்தது', resSub:'AI + நிபுணர் கூட்டு மதிப்பீடு · MSDE RPL',
+    overallL:'மொத்தம்',
+    bVoice:'குரல் / கோட்பாடு', bPractical:'நடைமுறை (வீடியோ)', bQuiz:'காட்சி வினாடி வினா',
+    bPPE:'பாதுகாப்பு உபகரணம்', bTool:'கருவி கையாளுதல்', bSafety:'பாதுகாப்பு நடைமுறை',
+    gapsT:'🎯 திறன் இடைவெளி பகுப்பாய்வு', gapsS:'மேம்படுத்த வேண்டிய பகுதிகள்',
+    microT:'📚 நுண் கற்றல் (30 விநாடி)', microS:'உங்கள் பலவீனமான பகுதிகளுக்கான பாடங்கள்',
+    certT:'🎓 சரிபார்க்கக்கூடிய டிஜிட்டல் சான்றிதழ்', certS:'மோசடி செய்ய முடியாதது · QR மூலம் உடனடி சரிபார்ப்பு',
+    certHead:'முன் அனுபவ அங்கீகாரம் — திறன் சான்றிதழ்',
+    qrNote:'சரிபார்க்க ஸ்கேன் செய்யுங்கள்<br>skillindia.gov.in/verify',
+    download:'பதிவிறக்கம் / பிரிண்ட்', share:'முதலாளியுடன் பகிர்', retake:'மீண்டும் செய்',
+    jobsT:'💼 வேலைவாய்ப்பு இணைப்பு (NCS + MSME)', jobsS:'உங்கள் திறன் நிலைக்கு ஏற்ற வேலைகள்',
+    apply:'விண்ணப்பி',
+    noGaps:'அருமை! குறிப்பிடத்தக்க திறன் இடைவெளிகள் இல்லை.',
+    levelPrefix:'நிலை'
+  },
+  hi:{
+    tagline:'RPL के लिए AI-सहायित कौशल मूल्यांकन · MSDE',
+    proctor:'प्रोक्टरिंग सक्रिय', edge:'एज AI · कम बैंडविड्थ',
+    s1:'पंजीकरण', s2:'वॉइस टेस्ट', s3:'प्रैक्टिकल वीडियो', s4:'विज़ुअल क्विज़', s5:'प्रमाणपत्र',
+    heroTitle:'जो कौशल आपके पास पहले से है, उसका प्रमाणपत्र पाएं',
+    heroSub:'आपकी भाषा में वॉइस और वीडियो आधारित AI मूल्यांकन। लिखने की ज़रूरत नहीं।',
+    startBtn:'मूल्यांकन शुरू करें',
+    f1t:'वॉइस-फर्स्ट', f1d:'तमिल, हिंदी, तेलुगु या अंग्रेज़ी में बोलकर जवाब दें।',
+    f2t:'वीडियो प्रैक्टिकल', f2d:'अपना काम रिकॉर्ड करें — AI औज़ार और PPE जांचता है।',
+    f3t:'कम बैंडविड्थ', f3d:'एज AI 2G / 3G ग्रामीण नेटवर्क पर भी चलता है।',
+    f4t:'छेड़छाड़-रहित', f4d:'QR से तुरंत सत्यापित डिजिटल प्रमाणपत्र।',
+    formTitle:'श्रमिक पंजीकरण',
+    formSub:'अपनी जानकारी भरें। मूल्यांकन में लगभग 12 मिनट लगते हैं।',
+    nameL:'पूरा नाम', nameP:'जैसे मुरुगन एस',
+    tradeL:'ट्रेड / कौशल',
+    idL:'आईडी नंबर (आधार / वोटर आईडी)', idP:'XXXX XXXX 1234',
+    expL:'अनुभव (वर्ष)',
+    beginBtn:'मूल्यांकन शुरू करें',
+    privacyNote:'🔒 आपका वीडियो और वॉइस डेटा डिवाइस पर ही प्रोसेस होता है।',
+    voiceTitle:'वॉइस कौशल मूल्यांकन',
+    voiceSub:'AI बॉट सवाल पूछेगा। बोलकर जवाब दें — लिखने की ज़रूरत नहीं।',
+    speakBtn:'सवाल पढ़कर सुनाएं', micStart:'बोलने के लिए टैप करें', micStop:'सुन रहा है… रोकने के लिए टैप करें',
+    transcriptL:'आपका जवाब (वॉइस → टेक्स्ट)',
+    transcriptPh:'आपके बोले शब्द यहाँ दिखेंगे… टाइप भी कर सकते हैं।',
+    submit:'जमा करें और अगला →', skip:'छोड़ें',
+    voiceHint:'💡 सुझाव: औज़ार, सुरक्षा कदम और काम का क्रम बताएं।',
+    videoTitle:'प्रैक्टिकल कार्य प्रदर्शन',
+    videoSub:'अपना काम करते हुए छोटा वीडियो अपलोड करें। AI आपकी तकनीक जांचेगा।',
+    dropTitle:'वीडियो यहाँ डालें या टैप करें', dropSub:'MP4 / MOV · 30–90 सेकंड',
+    sample:'डेमो क्लिप', analyze:'AI विश्लेषण चलाएं',
+    v1:'वीडियो से कीफ्रेम निकाले जा रहे हैं…',
+    v2:'YOLOv8 ऑब्जेक्ट डिटेक्शन — औज़ार…',
+    v3:'MediaPipe पोज़ एस्टिमेशन — कार्य तकनीक…',
+    v4:'PPE अनुपालन जांच — हेलमेट, दस्ताने…',
+    v5:'विशेषज्ञ सत्यापन (30%) के लिए भेजा जा रहा है…',
+    quizTitle:'विज़ुअल कौशल क्विज़', quizSub:'चित्र देखें और सही उत्तर चुनें।',
+    readAloud:'पढ़कर सुनाएं', nextQ:'अगला →', finishQ:'परिणाम देखें →',
+    resTitle:'मूल्यांकन पूरा हुआ', resSub:'AI + विशेषज्ञ स्कोरिंग · MSDE RPL',
+    overallL:'कुल',
+    bVoice:'वॉइस / थ्योरी', bPractical:'प्रैक्टिकल (वीडियो)', bQuiz:'विज़ुअल क्विज़',
+    bPPE:'PPE अनुपालन', bTool:'औज़ार संचालन', bSafety:'सुरक्षा प्रोटोकॉल',
+    gapsT:'🎯 कौशल गैप विश्लेषण', gapsS:'सुधार वाले क्षेत्र',
+    microT:'📚 माइक्रो-लर्निंग (30 सेकंड)', microS:'आपके कमज़ोर मॉड्यूल से बनाए गए',
+    certT:'🎓 सत्यापन योग्य डिजिटल प्रमाणपत्र', certS:'छेड़छाड़-रहित · QR से तुरंत सत्यापन',
+    certHead:'पूर्व अनुभव की मान्यता — कौशल प्रमाणपत्र',
+    qrNote:'सत्यापन के लिए स्कैन करें<br>skillindia.gov.in/verify',
+    download:'डाउनलोड / प्रिंट', share:'नियोक्ता के साथ साझा करें', retake:'फिर से करें',
+    jobsT:'💼 नियोक्ता कनेक्ट (NCS + MSME)', jobsS:'आपके कौशल स्तर के अनुसार नौकरियाँ',
+    apply:'आवेदन करें',
+    noGaps:'बहुत बढ़िया! कोई बड़ा कौशल गैप नहीं मिला।',
+    levelPrefix:'स्तर'
+  },
+  te:{
+    tagline:'RPL కోసం AI-సహాయక నైపుణ్య అంచనా · MSDE',
+    proctor:'ప్రొక్టరింగ్ యాక్టివ్', edge:'ఎడ్జ్ AI · తక్కువ బ్యాండ్‌విడ్త్',
+    s1:'నమోదు', s2:'వాయిస్ టెస్ట్', s3:'ప్రాక్టికల్ వీడియో', s4:'విజువల్ క్విజ్', s5:'ధృవపత్రం',
+    heroTitle:'మీకు ఇప్పటికే ఉన్న నైపుణ్యాలకు ధృవపత్రం పొందండి',
+    heroSub:'మీ సొంత భాషలో వాయిస్ మరియు వీడియో ఆధారిత AI అంచనా. రాయాల్సిన అవసరం లేదు.',
+    startBtn:'అంచనా ప్రారంభించండి',
+    f1t:'వాయిస్-ఫస్ట్', f1d:'తమిళం, హిందీ, తెలుగు లేదా ఇంగ్లీషులో మాట్లాడి సమాధానం ఇవ్వండి.',
+    f2t:'వీడియో ప్రాక్టికల్', f2d:'మీ పనిని రికార్డ్ చేయండి — AI సాధనాలు, PPE తనిఖీ చేస్తుంది.',
+    f3t:'తక్కువ బ్యాండ్‌విడ్త్', f3d:'ఎడ్జ్ AI 2G / 3G గ్రామీణ నెట్‌వర్క్‌లో పనిచేస్తుంది.',
+    f4t:'మోసం నిరోధం', f4d:'QR ద్వారా తక్షణం ధృవీకరించగల డిజిటల్ ధృవపత్రం.',
+    formTitle:'కార్మికుల నమోదు',
+    formSub:'మీ వివరాలు నింపండి. అంచనాకు సుమారు 12 నిమిషాలు.',
+    nameL:'పూర్తి పేరు', nameP:'ఉదా. మురుగన్ ఎస్',
+    tradeL:'వృత్తి / నైపుణ్యం',
+    idL:'ఐడీ నంబర్ (ఆధార్ / ఓటర్ ఐడీ)', idP:'XXXX XXXX 1234',
+    expL:'అనుభవ సంవత్సరాలు',
+    beginBtn:'అంచనా ప్రారంభించండి',
+    privacyNote:'🔒 మీ వీడియో మరియు వాయిస్ డేటా పరికరంలోనే ప్రాసెస్ అవుతుంది.',
+    voiceTitle:'వాయిస్ నైపుణ్య అంచనా',
+    voiceSub:'AI బాట్ ప్రశ్నలు అడుగుతుంది. మాట్లాడి సమాధానం ఇవ్వండి.',
+    speakBtn:'ప్రశ్న చదివి వినిపించు', micStart:'మాట్లాడటానికి నొక్కండి', micStop:'వింటోంది… ఆపడానికి నొక్కండి',
+    transcriptL:'మీ సమాధానం (వాయిస్ → టెక్స్ట్)',
+    transcriptPh:'మీరు మాట్లాడినది ఇక్కడ కనిపిస్తుంది… టైప్ కూడా చేయవచ్చు.',
+    submit:'సమర్పించి తదుపరి →', skip:'దాటవేయి',
+    voiceHint:'💡 చిట్కా: సాధనాలు, భద్రతా చర్యలు, పని క్రమం పేర్కొనండి.',
+    videoTitle:'ప్రాక్టికల్ పని ప్రదర్శన',
+    videoSub:'మీరు పని చేస్తున్న చిన్న వీడియో అప్‌లోడ్ చేయండి. AI మీ నైపుణ్యాన్ని విశ్లేషిస్తుంది.',
+    dropTitle:'వీడియో ఇక్కడ వదలండి లేదా నొక్కండి', dropSub:'MP4 / MOV · 30–90 సెకన్లు',
+    sample:'డెమో క్లిప్', analyze:'AI విశ్లేషణ నడపండి',
+    v1:'వీడియో నుండి కీఫ్రేమ్‌లు తీస్తోంది…',
+    v2:'YOLOv8 ఆబ్జెక్ట్ డిటెక్షన్ — సాధనాలు…',
+    v3:'MediaPipe పోజ్ ఎస్టిమేషన్ — పని పద్ధతి…',
+    v4:'PPE నిబంధన తనిఖీ — హెల్మెట్, గ్లౌజ్…',
+    v5:'నిపుణుల ధృవీకరణ (30%) కి పంపుతోంది…',
+    quizTitle:'విజువల్ నైపుణ్య క్విజ్', quizSub:'చిత్రం చూసి సరైన సమాధానం ఎంచుకోండి.',
+    readAloud:'బిగ్గరగా చదువు', nextQ:'తదుపరి →', finishQ:'ఫలితం చూడండి →',
+    resTitle:'అంచనా పూర్తయింది', resSub:'AI + నిపుణుల స్కోరింగ్ · MSDE RPL',
+    overallL:'మొత్తం',
+    bVoice:'వాయిస్ / థియరీ', bPractical:'ప్రాక్టికల్ (వీడియో)', bQuiz:'విజువల్ క్విజ్',
+    bPPE:'PPE నిబంధన', bTool:'సాధన నిర్వహణ', bSafety:'భద్రతా ప్రోటోకాల్',
+    gapsT:'🎯 నైపుణ్య లోప విశ్లేషణ', gapsS:'మెరుగుపరచాల్సిన ప్రాంతాలు',
+    microT:'📚 మైక్రో-లెర్నింగ్ (30 సెకన్లు)', microS:'మీ బలహీన మాడ్యూల్స్ నుండి రూపొందించబడింది',
+    certT:'🎓 ధృవీకరించదగిన డిజిటల్ ధృవపత్రం', certS:'మోసం చేయలేనిది · QR తక్షణ ధృవీకరణ',
+    certHead:'మునుపటి అనుభవ గుర్తింపు — నైపుణ్య ధృవపత్రం',
+    qrNote:'ధృవీకరించడానికి స్కాన్ చేయండి<br>skillindia.gov.in/verify',
+    download:'డౌన్‌లోడ్ / ప్రింట్', share:'యజమానితో పంచుకోండి', retake:'మళ్ళీ చేయండి',
+    jobsT:'💼 యజమాని కనెక్ట్ (NCS + MSME)', jobsS:'మీ నైపుణ్య స్థాయికి సరిపోయే ఉద్యోగాలు',
+    apply:'దరఖాస్తు',
+    noGaps:'అద్భుతం! పెద్ద నైపుణ్య లోపాలు లేవు.',
+    levelPrefix:'స్థాయి'
+  }
+};
+
+/* =========================================================
+   2. TRADE + QUESTION BANK
+   ========================================================= */
+const TRADES = {
+  electrician:{
+    icon:'⚡',
+    name:{ en:'Electrician', ta:'மின்சார தொழிலாளர்', hi:'इलेक्ट्रीशियन', te:'ఎలక్ట్రీషియన్' },
+    questions:[
+      { q:{
+          en:'What is the first thing you must do before starting any electrical repair work?',
+          ta:'எந்த மின் பழுது பார்த்தல் வேலையைத் தொடங்குவதற்கு முன் முதலில் என்ன செய்ய வேண்டும்?',
+          hi:'कोई भी बिजली की मरम्मत शुरू करने से पहले सबसे पहले क्या करना चाहिए?',
+          te:'ఏదైనా విద్యుత్ మరమ్మత్తు ప్రారంభించే ముందు మొదట ఏమి చేయాలి?'
+        },
+        kw:['power','off','switch','main','supply','isolate','test','glove','ppe','safety','breaker','mcb'] },
+      { q:{
+          en:'How do you identify a live wire using a tester?',
+          ta:'டெஸ்டர் பயன்படுத்தி லைவ் வயரை எப்படி கண்டறிவீர்கள்?',
+          hi:'टेस्टर से लाइव तार कैसे पहचानेंगे?',
+          te:'టెస్టర్ ఉపయోగించి లైవ్ వైర్‌ను ఎలా గుర్తిస్తారు?'
+        },
+        kw:['tester','glow','light','live','phase','neutral','touch','indicator','bulb'] },
+      { q:{
+          en:'What is the correct colour code for the earth wire in India?',
+          ta:'இந்தியாவில் எர்த் வயரின் சரியான நிறக் குறியீடு என்ன?',
+          hi:'भारत में अर्थ वायर का सही रंग कोड क्या है?',
+          te:'భారతదేశంలో ఎర్త్ వైర్ సరైన రంగు కోడ్ ఏమిటి?'
+        },
+        kw:['green','yellow','earth','green-yellow','stripe','ground'] }
+    ]
+  },
+  plumber:{
+    icon:'🔧',
+    name:{ en:'Plumber', ta:'குழாய் தொழிலாளர்', hi:'प्लंबर', te:'ప్లంబర్' },
+    questions:[
+      { q:{
+          en:'How do you locate a water leak in an underground pipe?',
+          ta:'நிலத்தடி குழாயில் நீர் கசிவை எப்படி கண்டறிவீர்கள்?',
+          hi:'भूमिगत पाइप में पानी का रिसाव कैसे पता करेंगे?',
+          te:'భూగర్భ పైపులో నీటి లీక్‌ను ఎలా గుర్తిస్తారు?'
+        },
+        kw:['pressure','meter','sound','listen','dig','wet','soil','valve','isolate','gauge','test'] },
+      { q:{
+          en:'Which tool is used to cut and thread GI pipes?',
+          ta:'GI குழாய்களை வெட்டி திரெட் செய்ய எந்த கருவி பயன்படுத்தப்படுகிறது?',
+          hi:'GI पाइप काटने और थ्रेड करने के लिए कौन सा औज़ार इस्तेमाल होता है?',
+          te:'GI పైపులను కత్తిరించి థ్రెడ్ చేయడానికి ఏ సాధనం ఉపయోగిస్తారు?'
+        },
+        kw:['die','pipe','wrench','cutter','thread','vice','hacksaw','tap','set'] },
+      { q:{
+          en:'What is the ideal slope given to a drainage pipe and why?',
+          ta:'வடிகால் குழாய்க்கு ஏற்ற சரிவு எவ்வளவு, ஏன்?',
+          hi:'नाली पाइप को कितना ढलान दिया जाता है और क्यों?',
+          te:'డ్రైనేజ్ పైపుకు ఎంత వాలు ఇస్తారు మరియు ఎందుకు?'
+        },
+        kw:['slope','gradient','fall','level','flow','gravity','1 in','block','water'] }
+    ]
+  },
+  welder:{
+    icon:'🔥',
+    name:{ en:'Welder', ta:'வெல்டர்', hi:'वेल्डर', te:'వెల్డర్' },
+    questions:[
+      { q:{
+          en:'Which safety equipment is mandatory before starting arc welding?',
+          ta:'ஆர்க் வெல்டிங் தொடங்குவதற்கு முன் கட்டாயமாக அணிய வேண்டிய பாதுகாப்பு உபகரணங்கள் எவை?',
+          hi:'आर्क वेल्डिंग शुरू करने से पहले कौन से सुरक्षा उपकरण अनिवार्य हैं?',
+          te:'ఆర్క్ వెల్డింగ్ ప్రారంభించే ముందు ఏ భద్రతా పరికరాలు తప్పనిసరి?'
+        },
+        kw:['helmet','shield','glove','goggle','apron','mask','leather','sleeve','boot','ppe'] },
+      { q:{
+          en:'How do you identify a good quality weld bead?',
+          ta:'நல்ல தரமான வெல்ட் பீட்டை எப்படி அடையாளம் காண்பீர்கள்?',
+          hi:'अच्छी गुणवत्ता वाली वेल्ड बीड को कैसे पहचानेंगे?',
+          te:'మంచి నాణ్యత గల వెల్డ్ బీడ్‌ను ఎలా గుర్తిస్తారు?'
+        },
+        kw:['uniform','smooth','even','spatter','penetration','ripple','slag','crack','width','consistent'] },
+      { q:{
+          en:'Why is pre-heating required in some welding jobs?',
+          ta:'சில வெல்டிங் வேலைகளில் ப்ரீ-ஹீட்டிங் ஏன் தேவை?',
+          hi:'कुछ वेल्डिंग कार्यों में प्री-हीटिंग क्यों जरूरी है?',
+          te:'కొన్ని వెల్డింగ్ పనుల్లో ప్రీ-హీటింగ్ ఎందుకు అవసరం?'
+        },
+        kw:['crack','moisture','hydrogen','distortion','thick','cooling','stress','slow','carbon'] }
+    ]
+  }
+};
+
+/* =========================================================
+   3. QUIZ DATA (with inline SVG illustrations)
+   ========================================================= */
+function svgWorker(type){
+  const helmet = type !== 'nohelmet'
+    ? '<path d="M26 74 A34 34 0 0 1 94 74 Z" fill="#ffb020"/><rect x="19" y="70" width="82" height="9" rx="4" fill="#e09a10"/>'
+    : '';
+  const goggles = type === 'full'
+    ? '<rect x="34" y="78" width="52" height="17" rx="8" fill="#1d2b40" stroke="#7fd6ff" stroke-width="2.5"/>'
+    : '';
+  const gloves = type === 'full'
+    ? '<rect x="14" y="140" width="28" height="22" rx="7" fill="#c0392b"/><rect x="78" y="140" width="28" height="22" rx="7" fill="#c0392b"/>'
+    : '';
+  return `<svg viewBox="0 0 120 175">
+    <circle cx="60" cy="84" r="30" fill="#f2c9a4"/>
+    <rect x="52" y="108" width="16" height="16" fill="#e5b892"/>
+    <rect x="30" y="122" width="60" height="56" rx="12" fill="#2f4a6d"/>
+    ${helmet}${goggles}${gloves}
+  </svg>`;
+}
+
+function svgBoard(){
+  return `<svg viewBox="0 0 200 140">
+    <rect x="6" y="6" width="188" height="128" rx="12" fill="#0e5c3a" stroke="#0a4a2e" stroke-width="3"/>
+    <path d="M30 110 H80 V70 H130" stroke="#c9a227" stroke-width="3" fill="none"/>
+    <path d="M150 30 V70 H100" stroke="#c9a227" stroke-width="3" fill="none"/>
+    <!-- resistor -->
+    <rect x="120" y="24" width="34" height="14" rx="5" fill="#d8c39a"/>
+    <rect x="126" y="24" width="4" height="14" fill="#8b4513"/>
+    <rect x="136" y="24" width="4" height="14" fill="#111"/>
+    <!-- LED -->
+    <circle cx="160" cy="106" r="10" fill="#ff4d4d" stroke="#8b1a1a" stroke-width="2"/>
+    <!-- capacitor (BULGING / damaged) -->
+    <rect x="42" y="58" width="34" height="38" rx="5" fill="#3a4a63"/>
+    <path d="M42 60 A17 14 0 0 1 76 60 Z" fill="#6b7f9e"/>
+    <ellipse cx="59" cy="56" rx="17" ry="8" fill="#7a4a2a"/>
+    <path d="M50 44 q4 -10 0 -16" stroke="#9aa7b8" stroke-width="3" fill="none" opacity="0.75"/>
+    <path d="M66 44 q-4 -12 2 -18" stroke="#9aa7b8" stroke-width="3" fill="none" opacity="0.55"/>
+    <rect x="52" y="96" width="4" height="14" fill="#b8c4d4"/>
+    <rect x="62" y="96" width="4" height="14" fill="#b8c4d4"/>
+  </svg>`;
+}
+
+function svgPipe(){
+  return `<svg viewBox="0 0 200 140">
+    <rect x="6" y="58" width="188" height="36" rx="10" fill="#8d9bb0"/>
+    <rect x="6" y="58" width="188" height="12" rx="6" fill="#a8b6c8"/>
+    <rect x="84" y="50" width="34" height="52" rx="7" fill="#6b7a90"/>
+    <rect x="84" y="50" width="34" height="8" rx="4" fill="#8a99ad"/>
+    <!-- crack -->
+    <path d="M60 62 l6 10 l-7 8 l6 8" stroke="#3a4658" stroke-width="3" fill="none"/>
+    <!-- spray -->
+    <circle cx="48" cy="44" r="4" fill="#4aa3ff" opacity=".9"/>
+    <circle cx="38" cy="34" r="3" fill="#4aa3ff" opacity=".7"/>
+    <circle cx="56" cy="30" r="3" fill="#4aa3ff" opacity=".6"/>
+    <path d="M63 60 q-14 -12 -22 -22" stroke="#4aa3ff" stroke-width="2.5" fill="none" opacity=".6"/>
+    <ellipse cx="48" cy="112" rx="40" ry="8" fill="#2b6fb5" opacity=".45"/>
+  </svg>`;
+}
+
+const QUIZ = [
+  {
+    q:{
+      en:'Which worker is wearing the correct PPE for arc welding?',
+      ta:'ஆர்க் வெல்டிங்கிற்கு சரியான பாதுகாப்பு உபகரணம் அணிந்த தொழிலாளர் யார்?',
+      hi:'आर्क वेल्डिंग के लिए सही PPE कौन पहने हुए है?',
+      te:'ఆర్క్ వెల్డింగ్‌కు సరైన PPE ధరించిన కార్మికుడు ఎవరు?'
+    },
+    options:[
+      { svg:svgWorker('full'),     label:{en:'Worker A', ta:'தொழிலாளர் A', hi:'श्रमिक A', te:'కార్మికుడు A'}, correct:true },
+      { svg:svgWorker('nohelmet'), label:{en:'Worker B', ta:'தொழிலாளர் B', hi:'श्रमिक B', te:'కార్మికుడు B'}, correct:false },
+      { svg:svgWorker('nogoggles'),label:{en:'Worker C', ta:'தொழிலாளர் C', hi:'श्रमिक C', te:'కార్మికుడు C'}, correct:false }
+    ],
+    explain:{
+      en:'Welding helmet + goggles + leather gloves + apron are mandatory. Missing any one is a safety violation.',
+      ta:'வெல்டிங் ஹெல்மெட் + கண்ணாடி + தோல் கையுறை + ஏப்ரன் கட்டாயம். ஒன்று இல்லாவிட்டாலும் பாதுகாப்பு மீறல்.',
+      hi:'वेल्डिंग हेलमेट + गॉगल्स + चमड़े के दस्ताने + एप्रन अनिवार्य हैं।',
+      te:'వెల్డింగ్ హెల్మెట్ + గాగుల్స్ + తోలు గ్లౌజ్ + ఏప్రాన్ తప్పనిసరి.'
+    }
+  },
+  {
+    q:{
+      en:'Identify the faulty component on this circuit board.',
+      ta:'இந்த சர்க்யூட் போர்டில் பழுதான கூறை கண்டறியுங்கள்.',
+      hi:'इस सर्किट बोर्ड पर खराब कॉम्पोनेंट पहचानें।',
+      te:'ఈ సర్క్యూట్ బోర్డ్‌లో పాడైన భాగాన్ని గుర్తించండి.'
+    },
+    options:[
+      { svg:svgBoard(), label:{en:'Bulging capacitor', ta:'வீங்கிய மின்தேக்கி', hi:'फूला कैपेसिटर', te:'ఉబ్బిన కెపాసిటర్'}, correct:true },
+      { svg:svgBoard(), label:{en:'Resistor', ta:'மின்தடை', hi:'रेज़िस्टर', te:'రెసిస్టర్'}, correct:false },
+      { svg:svgBoard(), label:{en:'LED indicator', ta:'LED விளக்கு', hi:'LED इंडिकेटर', te:'LED ఇండికేటర్'}, correct:false }
+    ],
+    explain:{
+      en:'The capacitor top is domed/burnt with residue — classic failure sign. Replace before powering the board.',
+      ta:'மின்தேக்கியின் மேல் பகுதி வீங்கி எரிந்துள்ளது — இது பொதுவான பழுது அறிகுறி. மாற்றிய பின் இயக்கவும்.',
+      hi:'कैपेसिटर का ऊपरी हिस्सा फूला और जला है — यही खराबी का संकेत है।',
+      te:'కెపాసిటర్ పైభాగం ఉబ్బి కాలిపోయింది — ఇది పాడైన సంకేతం.'
+    }
+  },
+  {
+    q:{
+      en:'Select the correct repair method for this leaking pipe joint.',
+      ta:'இந்த கசியும் குழாய் இணைப்பிற்கு சரியான பழுது நீக்கும் முறையை தேர்ந்தெடுங்கள்.',
+      hi:'इस रिसते पाइप जोड़ के लिए सही मरम्मत विधि चुनें।',
+      te:'ఈ లీక్ అవుతున్న పైపు జాయింట్‌కు సరైన మరమ్మతు పద్ధతిని ఎంచుకోండి.'
+    },
+    options:[
+      { svg:svgPipe(), label:{en:'Cut & re-thread with new joint', ta:'வெட்டி புதிய இணைப்பு பொருத்து', hi:'काटकर नया जोड़ लगाएं', te:'కత్తిరించి కొత్త జాయింట్ అమర్చు'}, correct:true },
+      { svg:svgPipe(), label:{en:'Wrap tape over the leak', ta:'டேப் சுற்றி மூடு', hi:'टेप लपेट दें', te:'టేప్ చుట్టండి'}, correct:false },
+      { svg:svgPipe(), label:{en:'Tighten by hand only', ta:'கையால் மட்டும் இறுக்கு', hi:'सिर्फ हाथ से कसें', te:'చేతితో మాత్రమే బిగించు'}, correct:false }
+    ],
+    explain:{
+      en:'A cracked joint must be cut out and re-threaded with a new fitting. Tape is only a temporary fix and will fail under pressure.',
+      ta:'விரிசல் உள்ள இணைப்பை வெட்டி புதிய பொருத்துதலுடன் மீண்டும் திரெட் செய்ய வேண்டும். டேப் தற்காலிக தீர்வு மட்டுமே.',
+      hi:'टूटे जोड़ को काटकर नए फिटिंग से दोबारा थ्रेड करें। टेप केवल अस्थायी उपाय है।',
+      te:'పగిలిన జాయింట్‌ను కత్తిరించి కొత్త ఫిట్టింగ్‌తో థ్రెడ్ చేయాలి. టేప్ తాత్కాలిక మాత్రమే.'
+    }
+  }
+];
+
+/* =========================================================
+   4. JOBS DATA
+   ========================================================= */
+const JOBS = {
+  electrician:[
+    { t:'Industrial Electrician', c:'L&T Manufacturing · Chennai', s:'₹22,000 – 28,000 /mo' },
+    { t:'Panel Wiring Technician', c:'Siemens MSME Partner · Coimbatore', s:'₹18,000 – 24,000 /mo' },
+    { t:'Apprentice — Electrical Maintenance', c:'TNEB Vendor Network · Madurai', s:'Stipend ₹9,000 /mo' }
+  ],
+  plumber:[
+    { t:'Site Plumber — Residential Project', c:'Shapoorji Pallonji · Chennai', s:'₹20,000 – 26,000 /mo' },
+    { t:'Pipeline Maintenance Technician', c:'CMWSSB Contractor · Trichy', s:'₹17,000 – 22,000 /mo' },
+    { t:'Apprentice — Sanitary Fitting', c:'MSME Cluster · Salem', s:'Stipend ₹8,500 /mo' }
+  ],
+  welder:[
+    { t:'Arc Welder — Structural Fabrication', c:'BHEL Ancillary · Trichy', s:'₹24,000 – 32,000 /mo' },
+    { t:'MIG Welding Operator', c:'Ashok Leyland Vendor · Hosur', s:'₹21,000 – 27,000 /mo' },
+    { t:'Apprentice — Pipe Welding', c:'MSME Fabrication Unit · Ranipet', s:'Stipend ₹10,000 /mo' }
+  ]
+};
+
+/* =========================================================
+   5. STATE + HELPERS
+   ========================================================= */
+const state = {
+  lang:'en',
+  name:'',
+  trade:'electrician',
+  id:'',
+  exp:5,
+  currentScreen:'home',
+  voiceScores:[],
+  voiceIdx:0,
+  quizIdx:0,
+  quizCorrect:0,
+  videoScores:null,
+  certId:''
+};
+
+const $ = id => document.getElementById(id);
+
+function t(key){
+  return (I18N[state.lang] && I18N[state.lang][key]) || I18N.en[key] || key;
+}
+function localized(obj){
+  if(!obj) return '';
+  return obj[state.lang] || obj.en || '';
+}
+function toast(msg){
+  const el = $('toast');
+  el.textContent = msg;
+  el.classList.add('show');
+  clearTimeout(el._tm);
+  el._tm = setTimeout(()=>el.classList.remove('show'), 2600);
+}
+
+/* =========================================================
+   6. LANGUAGE
+   ========================================================= */
+function applyLang(){
+  document.querySelectorAll('[data-i18n]').forEach(el=>{
+    el.textContent = t(el.getAttribute('data-i18n'));
+  });
+  document.querySelectorAll('[data-i18n-ph]').forEach(el=>{
+    el.placeholder = t(el.getAttribute('data-i18n-ph'));
+  });
+  renderTradeGrid();
+  if(state.currentScreen === 'voice') renderVoiceQuestion(true);
+  if(state.currentScreen === 'quiz')  renderQuiz(true);
+}
+
+$('langSel').addEventListener('change', e=>{
+  state.lang = e.target.value;
+  applyLang();
+  toast('🌐 ' + e.target.options[e.target.selectedIndex].text);
+});
+
+/* =========================================================
+   7. SCREEN NAVIGATION
+   ========================================================= */
+function goScreen(name, stepNum){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  $('scr-' + name).classList.add('active');
+  state.currentScreen = name;
+
+  document.querySelectorAll('.step').forEach(s=>{
+    const n = parseInt(s.dataset.step, 10);
+    s.classList.toggle('active', n === stepNum);
+    s.classList.toggle('done', n < stepNum);
+  });
+  window.scrollTo({ top:0, behavior:'smooth' });
+}
+
+/* =========================================================
+   8. TRADE GRID
+   ========================================================= */
+function renderTradeGrid(){
+  const grid = $('tradeGrid');
+  grid.innerHTML = '';
+  Object.keys(TRADES).forEach(key=>{
+    const tr = TRADES[key];
+    const d = document.createElement('div');
+    d.className = 'trade' + (state.trade === key ? ' sel' : '');
+    d.innerHTML = `<div class="ti">${tr.icon}</div><div class="tn">${localized(tr.name)}</div>`;
+    d.onclick = ()=>{
+      state.trade = key;
+      renderTradeGrid();
+    };
+    grid.appendChild(d);
+  });
+}
+
+/* =========================================================
+   9. SPEECH (TTS + STT)
+   ========================================================= */
+function speak(text){
+  if(!('speechSynthesis' in window)) { toast('🔇 TTS not supported'); return; }
+  window.speechSynthesis.cancel();
+  const u = new SpeechSynthesisUtterance(text);
+  u.lang = LANG_MAP[state.lang];
+  u.rate = 0.9;
+  u.pitch = 1;
+  window.speechSynthesis.speak(u);
+}
+
+let recog = null, listening = false, finalText = '';
+
+function setMicUI(on){
+  const btn = $('micBtn');
+  btn.classList.toggle('on', on);
+  btn.textContent = on ? '⏹' : '🎤';
+  $('wave').style.display = on ? 'flex' : 'none';
+  $('micLabel').textContent = on ? t('micStop') : t('micStart');
+}
+
+function toggleMic(){
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if(!SR){
+    toast('⚠️ Speech recognition not available — please type your answer');
+    return;
+  }
+  if(listening){
+    try{ recog.stop(); }catch(e){}
+    return;
+  }
+  recog = new SR();
+  recog.lang = LANG_MAP[state.lang];
+  recog.continuous = true;
+  recog.interimResults = true;
+
+  finalText = $('vTranscript').value || '';
+
+  recog.onresult = e=>{
+    let interim = '';
+    for(let i = e.resultIndex; i < e.results.length; i++){
+      const tr = e.results[i][0].transcript;
+      if(e.results[i].isFinal) finalText += ' ' + tr;
+      else interim += tr;
+    }
+    $('vTranscript').value = (finalText + ' ' + interim).replace(/\s+/g,' ').trim();
+  };
+  recog.onerror = ()=> setMicUI(false);
+  recog.onend   = ()=>{ listening = false; setMicUI(false); };
+
+  try{
+    recog.start();
+    listening = true;
+    setMicUI(true);
+  }catch(err){
+    toast('⚠️ Mic error: ' + err.message);
+  }
+}
+
+/* =========================================================
+   10. SCREEN 1 → 2 : REGISTRATION
+   ========================================================= */
+$('startBtn').onclick = ()=> {
+  $('regCard').scrollIntoView({behavior:'smooth', block:'center'});
+};
+
+$('beginBtn').onclick = ()=>{
+  const name = $('inName').value.trim();
+  if(!name){ toast('✋ Please enter your name'); $('inName').focus(); return; }
+  state.name = name;
+  state.id = $('inId').value.trim() || 'XXXX-XXXX-0000';
+  state.exp = parseInt($('inExp').value || '0', 10);
+  state.voiceIdx = 0;
+  state.voiceScores = [];
+  state.quizIdx = 0;
+  state.quizCorrect = 0;
+  state.videoScores = null;
+  state.certId = 'RPL-' + new Date().getFullYear() + '-' + Math.floor(100000 + Math.random()*899999);
+
+  goScreen('voice', 2);
+  renderVoiceQuestion();
+};
+
+/* =========================================================
+   11. VOICE SCREEN
+   ========================================================= */
+function renderVoiceQuestion(preserve){
+  const trade = TRADES[state.trade];
+  const q = trade.questions[state.voiceIdx];
+  $('vQNum').textContent = (state.voiceIdx + 1) + ' / ' + trade.questions.length;
+  $('vQText').textContent = localized(q.q);
+  if(!preserve) $('vTranscript').value = '';
+  $('vSubmit').textContent = (state.voiceIdx === trade.questions.length - 1)
+    ? '✔ ' + t('submit') : t('submit');
+}
+
+$('speakBtn').onclick = ()=>{
+  const q = TRADES[state.trade].questions[state.voiceIdx];
+  speak(localized(q.q));
+};
+
+$('micBtn').onclick = toggleMic;
+
+function scoreAnswer(text, keywords){
+  const txt = (text || '').toLowerCase();
+  if(!txt.trim()) return { score:0, hits:[] };
+  const hits = keywords.filter(k => txt.includes(k));
+  const base = (hits.length / keywords.length) * 100;
+  const words = txt.split(/\s+/).filter(Boolean).length;
+  const lenBonus = Math.min(22, words * 1.6);
+  const score = Math.max(0, Math.min(100, Math.round(base * 0.82 + lenBonus)));
+  return { score, hits };
+}
+
+$('vSubmit').onclick = ()=>{
+  if(listening){ try{ recog.stop(); }catch(e){} }
+  const q = TRADES[state.trade].questions[state.voiceIdx];
+  const text = $('vTranscript').value;
+  const res = scoreAnswer(text, q.kw);
+  state.voiceScores.push(res.score);
+
+  if(res.hits.length){
+    toast('✅ ' + t('bVoice') + ': ' + res.score + '% · ' + res.hits.slice(0,3).join(', '));
+  } else {
+    toast('📝 ' + t('bVoice') + ': ' + res.score + '%');
+  }
+
+  nextVoiceQuestion();
+};
+
+$('vSkip').onclick = ()=>{
+  if(listening){ try{ recog.stop(); }catch(e){} }
+  state.voiceScores.push(0);
+  nextVoiceQuestion();
+};
+
+function nextVoiceQuestion(){
+  const total = TRADES[state.trade].questions.length;
+  if(state.voiceIdx < total - 1){
+    state.voiceIdx++;
+    renderVoiceQuestion();
+  } else {
+    goScreen('video', 3);
+  }
+}
+
+/* =========================================================
+   12. VIDEO SCREEN
+   ========================================================= */
+let videoFile = null;
+let animId = null;
+
+$('dropzone').onclick = ()=> $('fileInput').click();
+
+$('fileInput').onchange = e=>{
+  const f = e.target.files[0];
+  if(f) loadVideoFile(f);
+};
+
+['dragover','dragenter'].forEach(ev=>{
+  $('dropzone').addEventListener(ev, e=>{
+    e.preventDefault();
+    $('dropzone').classList.add('over');
+  });
+});
+['dragleave','drop'].forEach(ev=>{
+  $('dropzone').addEventListener(ev, e=>{
+    e.preventDefault();
+    $('dropzone').classList.remove('over');
+  });
+});
+$('dropzone').addEventListener('drop', e=>{
+  const f = e.dataTransfer.files[0];
+  if(f && f.type.startsWith('video/')) loadVideoFile(f);
+});
+
+function loadVideoFile(file){
+  videoFile = file;
+  const url = URL.createObjectURL(file);
+  const v = $('vidEl');
+  v.src = url;
+  v.play().catch(()=>{});
+  $('mediaBox').style.display = 'block';
+  $('dropzone').style.display = 'none';
+  $('analyzeBtn').disabled = false;
+  toast('🎥 ' + file.name.slice(0, 28) + '… loaded');
+}
+
+$('sampleBtn').onclick = ()=>{
+  videoFile = 'demo';
+  $('vidEl').removeAttribute('src');
+  $('mediaBox').style.display = 'block';
+  $('dropzone').style.display = 'none';
+  $('analyzeBtn').disabled = false;
+  toast('▶ Demo clip ready');
+  startCanvasAnim();
+};
+
+$('analyzeBtn').onclick = ()=>{
+  $('analyzeBtn').disabled = true;
+  $('scanbar').style.display = 'block';
+  startCanvasAnim();
+  runAnalysisSequence();
+};
+
+function startCanvasAnim(){
+  const cv = $('vCanvas');
+  if(animId) cancelAnimationFrame(animId);
+
+  function resize(){
+    cv.width = cv.clientWidth || 640;
+    cv.height = cv.clientHeight || 360;
+  }
+  resize();
+  window.addEventListener('resize', resize);
+
+  const ctx = cv.getContext('2d');
+  const hasVideo = videoFile && videoFile !== 'demo';
+  const t0 = performance.now();
+
+  function box(x, y, w, h, label, color){
+    ctx.strokeStyle = color;
+    ctx.lineWidth = 2;
+    ctx.strokeRect(x, y, w, h);
+    ctx.font = 'bold 11px monospace';
+    const tw = ctx.measureText(label).width + 10;
+    ctx.fillStyle = color;
+    ctx.fillRect(x, y - 15, tw, 15);
+    ctx.fillStyle = '#06121f';
+    ctx.fillText(label, x + 5, y - 4);
+  }
+
+  function frame(now){
+    const t = now - t0;
+    ctx.clearRect(0, 0, cv.width, cv.height);
+
+    if(!hasVideo){
+      ctx.fillStyle = '#08111f';
+      ctx.fillRect(0, 0, cv.width, cv.height);
+      ctx.strokeStyle = 'rgba(60,90,130,0.22)';
+      ctx.lineWidth = 1;
+      for(let x = 0; x < cv.width; x += 42){
+        ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, cv.height); ctx.stroke();
+      }
+      for(let y = 0; y < cv.height; y += 42){
+        ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(cv.width, y); ctx.stroke();
+      }
+    }
+
+    const cx = cv.width / 2 + Math.sin(t / 620) * 26;
+    const baseY = cv.height * 0.82;
+    const headY = baseY - 150;
+
+    ctx.strokeStyle = '#00d4a0';
+    ctx.lineWidth = 3;
+    ctx.lineCap = 'round';
+
+    // head
+    ctx.beginPath(); ctx.arc(cx, headY, 18, 0, Math.PI * 2); ctx.stroke();
+    // torso
+    ctx.beginPath(); ctx.moveTo(cx, headY + 18); ctx.lineTo(cx, headY + 72); ctx.stroke();
+    // arms
+    const sw = Math.sin(t / 260) * 24;
+    ctx.beginPath(); ctx.moveTo(cx, headY + 32); ctx.lineTo(cx - 44, headY + 62 + sw); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(cx, headY + 32); ctx.lineTo(cx + 44, headY + 58 - sw); ctx.stroke();
+    // legs
+    ctx.beginPath(); ctx.moveTo(cx, headY + 72); ctx.lineTo(cx - 30, baseY); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(cx, headY + 72); ctx.lineTo(cx + 30, baseY); ctx.stroke();
+
+    // joints
+    ctx.fillStyle = '#7dffd4';
+    [[cx, headY + 32], [cx - 44, headY + 62 + sw], [cx + 44, headY + 58 - sw], [cx, headY + 72]]
+      .forEach(p => { ctx.beginPath(); ctx.arc(p[0], p[1], 3.5, 0, Math.PI * 2); ctx.fill(); });
+
+    // detection boxes
+    box(cx - 62, headY - 32, 124, 230, 'person 0.98', '#00d4a0');
+    box(cx - 32, headY - 34, 64, 32, 'helmet 0.94', '#ffb020');
+    box(cx + 18, headY + 46, 46, 32, 'gloves 0.91', '#4d9dff');
+    box(cx - 66, headY + 46, 40, 34, 'tool 0.87', '#4d9dff');
+
+    animId = requestAnimationFrame(frame);
+  }
+  animId = requestAnimationFrame(frame);
+}
+
+function runAnalysisSequence(){
+  const items = Array.from(document.querySelectorAll('#analysisList li'));
+  items.forEach(li=>{
+    li.classList.remove('active','done');
+    li.querySelector('.tick').textContent = '○';
+  });
+
+  let i = 0;
+  const iv = setInterval(()=>{
+    if(i > 0){
+      const prev = items[i - 1];
+      prev.classList.remove('active');
+      prev.classList.add('done');
+      prev.querySelector('.tick').textContent = '✓';
+    }
+    if(i < items.length){
+      items[i].classList.add('active');
+      items[i].querySelector('.tick').textContent = '◉';
+      i++;
+    } else {
+      clearInterval(iv);
+      finishAnalysis();
+    }
+  }, 1150);
+}
+
+function finishAnalysis(){
+  $('scanbar').style.display = 'none';
+  if(animId){ cancelAnimationFrame(animId); animId = null; }
+
+  // Simulated AI scores (deterministic-ish with slight randomness)
+  const r = (min, max) => Math.round(min + Math.random() * (max - min));
+  const aiScore     = r(68, 92);
+  const toolScore   = r(62, 90);
+  const ppeScore    = r(58, 88);
+  const safetyScore = r(60, 90);
+  const expertScore = Math.max(50, Math.min(100, aiScore + r(-6, 8)));
+  const practical   = Math.round(aiScore * 0.7 + expertScore * 0.3);
+
+  state.videoScores = { aiScore, toolScore, ppeScore, safetyScore, expertScore, practical };
+
+  toast('🤖 AI analysis complete · Practical: ' + practical + '%');
+  setTimeout(()=> goScreen('quiz', 4), 500);
+  renderQuiz();
+}
+
+/* =========================================================
+   13. QUIZ SCREEN
+   ========================================================= */
+let quizAnswered = false;
+
+function renderQuiz(preserve){
+  const q = QUIZ[state.quizIdx];
+  $('qNum').textContent = (state.quizIdx + 1) + ' / ' + QUIZ.length;
+  $('qText').textContent = localized(q.q);
+
+  const wrap = $('opts');
+  wrap.innerHTML = '';
+  quizAnswered = false;
+  $('qNext').disabled = true;
+  $('explain').className = 'explain';
+  $('qNext').textContent = (state.quizIdx === QUIZ.length - 1) ? t('finishQ') : t('nextQ');
+
+  q.options.forEach((opt, idx)=>{
+    const d = document.createElement('div');
+    d.className = 'opt';
+    d.innerHTML = opt.svg + '<div class="ol">' + localized(opt.label) + '</div>';
+    d.onclick = ()=>{
+      if(quizAnswered) return;
+      quizAnswered = true;
+
+      if(opt.correct){
+        state.quizCorrect++;
+        d.classList.add('correct');
+      } else {
+        d.classList.add('wrong');
+        wrap.querySelectorAll('.opt').forEach((el, i)=>{
+          if(q.options[i].correct) el.classList.add('correct');
+        });
+      }
+
+      const ex = $('explain');
+      ex.textContent = (opt.correct ? '✅ ' : '❌ ') + localized(q.explain);
+      ex.className = 'explain show ' + (opt.correct ? 'ok' : 'no');
+      $('qNext').disabled = false;
+    };
+    wrap.appendChild(d);
+  });
+}
+
+$('qSpeak').onclick = ()=>{
+  const q = QUIZ[state.quizIdx];
+  speak(localized(q.q));
+};
+
+$('qNext').onclick = ()=>{
+  if(state.quizIdx < QUIZ.length - 1){
+    state.quizIdx++;
+    renderQuiz();
+  } else {
+    goScreen('result', 5);
+    renderResults();
+  }
+};
+
+/* =========================================================
+   14. RESULTS
+   ========================================================= */
+function renderResults(){
+  const voiceScore = state.voiceScores.length
+    ? Math.round(state.voiceScores.reduce((a,b)=>a+b,0) / state.voiceScores.length)
+    : 0;
+  const quizScore = Math.round((state.quizCorrect / QUIZ.length) * 100);
+  const v = state.videoScores || { aiScore:70, toolScore:70, ppeScore:70, safetyScore:70, expertScore:70, practical:70 };
+
+  const overall = Math.round(voiceScore * 0.30 + v.practical * 0.45 + quizScore * 0.25);
+
+  // Ring
+  const ring = $('ring');
+  ring.style.setProperty('--p', overall + '%');
+  animateNumber($('overallScore'), overall);
+
+  // Bars
+  const bars = [
+    { label:t('bVoice'),     val:voiceScore,      warn:voiceScore < 70 },
+    { label:t('bPractical'), val:v.practical,     warn:v.practical < 70 },
+    { label:t('bQuiz'),      val:quizScore,       warn:quizScore < 70 },
+    { label:t('bPPE'),       val:v.ppeScore,      warn:v.ppeScore < 75 },
+    { label:t('bTool'),      val:v.toolScore,     warn:v.toolScore < 75 },
+    { label:t('bSafety'),    val:v.safetyScore,   warn:v.safetyScore < 75 }
+  ];
+
+  const barsEl = $('bars');
+  barsEl.innerHTML = '';
+  bars.forEach(b=>{
+    const div = document.createElement('div');
+    div.className = 'bar-item';
+    const cls = b.val >= 75 ? '' : (b.val >= 55 ? 'warn' : 'bad');
+    div.innerHTML = `
+      <div class="bl"><span>${b.label}</span><span>${b.val}%</span></div>
+      <div class="track"><div class="fill ${cls}" style="width:0"></div></div>`;
+    barsEl.appendChild(div);
+    requestAnimationFrame(()=>{
+      setTimeout(()=>{ div.querySelector('.fill').style.width = b.val + '%'; }, 80);
+    });
+  });
+
+  // Level
+  let level = 1;
+  if(overall >= 85) level = 4;
+  else if(overall >= 70) level = 3;
+  else if(overall >= 55) level = 2;
+
+  // Gaps
+  const gaps = [];
+  if(v.ppeScore < 75)      gaps.push({ key:'ppe',    label:t('bPPE') });
+  if(v.toolScore < 75)     gaps.push({ key:'tool',   label:t('bTool') });
+  if(v.safetyScore < 75)   gaps.push({ key:'safety', label:t('bSafety') });
+  if(voiceScore < 70)      gaps.push({ key:'voice',  label:t('bVoice') });
+  if(quizScore < 70)       gaps.push({ key:'quiz',   label:t('bQuiz') });
+
+  const chipWrap = $('gapChips');
+  chipWrap.innerHTML = '';
+  if(gaps.length === 0){
+    chipWrap.innerHTML = '<span class="chip good">✅ ' + t('noGaps') + '</span>';
+  } else {
+    gaps.forEach(g=>{
+      const s = document.createElement('span');
+      s.className = 'chip';
+      s.textContent = '⚠ ' + g.label;
+      chipWrap.appendChild(s);
+    });
+  }
+
+  // Micro-learning
+  const microWrap = $('microList');
+  microWrap.innerHTML = '';
+  const microMap = {
+    ppe:    { icon:'🦺', en:'PPE Wear Sequence',       ta:'பாதுகாப்பு உபகரணம் அணியும் முறை', hi:'PPE पहनने का क्रम', te:'PPE ధరించే క్రమం' },
+    tool:   { icon:'🔨', en:'Correct Tool Handling',  ta:'கருவி சரியான பயன்பாடு', hi:'सही औज़ार संचालन', te:'సరైన సాధన వినియోగం' },
+    safety: { icon:'⚠️', en:'Safety Protocol Basics', ta:'பாதுகாப்பு நடைமுறை அடிப்படை', hi:'सुरक्षा प्रोटोकॉल', te:'భద్రతా ప్రోటోకాల్' },
+    voice:  { icon:'🗣️', en:'Technical Terminology',  ta:'தொழில்நுட்ப சொற்கள்', hi:'तकनीकी शब्दावली', te:'సాంకేతిక పదజాలం' },
+    quiz:   { icon:'🔍', en:'Fault Diagnosis Visuals',ta:'பழுது கண்டறிதல்', hi:'फॉल्ट डायग्नोसिस', te:'ఫాల్ట్ డయాగ్నసిస్' }
+  };
+  const list = gaps.length ? gaps : [{ key:'ppe', label:t('bPPE') }];
+  list.slice(0,3).forEach(g=>{
+    const m = microMap[g.key];
+    const d = document.createElement('div');
+    d.className = 'micro';
+    d.innerHTML = `<div class="thumb">${m.icon}</div>
+      <div><div class="mt">${localized(m)}</div>
+      <div class="ms">30 sec · ${t('microS')}</div></div>`;
+    d.onclick = ()=> toast('▶ Playing: ' + localized(m));
+    microWrap.appendChild(d);
+  });
+
+  // Certificate
+  $('certName').textContent = state.name || 'Worker';
+  $('certRole').textContent = localized(TRADES[state.trade].name) + ' · ' + t('levelPrefix') + ' ' + level;
+  $('certLevel').textContent = 'NSQF ' + level;
+  $('certScore').textContent = overall + '%';
+  $('certDate').textContent = new Date().toLocaleDateString('en-IN', { day:'2-digit', month:'short', year:'numeric' });
+  $('certId').textContent = state.certId;
+
+  drawQR($('qrCanvas'), state.certId + '|' + state.name + '|' + overall);
+
+  // Jobs
+  const jl = $('jobList');
+  jl.innerHTML = '';
+  (JOBS[state.trade] || []).forEach(j=>{
+    const d = document.createElement('div');
+    d.className = 'job';
+    d.innerHTML = `
+      <div>
+        <div class="jt">${j.t}</div>
+        <div class="jc">${j.c}</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:12px">
+        <div class="js">${j.s}</div>
+        <button class="btn ghost" style="padding:8px 14px;font-size:12px">${t('apply')}</button>
+      </div>`;
+    d.querySelector('button').onclick = ()=> toast('✅ ' + t('apply') + ' → ' + j.t + ' (via NCS)');
+    jl.appendChild(d);
+  });
+}
+
+function animateNumber(el, target){
+  let cur = 0;
+  const step = Math.max(1, Math.round(target / 38));
+  const iv = setInterval(()=>{
+    cur += step;
+    if(cur >= target){ cur = target; clearInterval(iv); }
+    el.textContent = cur;
+  }, 22);
+}
+
+/* =========================================================
+   15. QR CODE (visual, deterministic)
+   ========================================================= */
+function inFinder(x, y, N){
+  return (x < 7 && y < 7) || (x >= N - 7 && y < 7) || (x < 7 && y >= N - 7);
+}
+
+function drawQR(canvas, text){
+  const ctx = canvas.getContext('2d');
+  const N = 29;
+  const cs = canvas.width / N;
+
+  ctx.fillStyle = '#ffffff';
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+  // hash seed
+  let h = 2166136261;
+  for(let i = 0; i < text.length; i++){
+    h ^= text.charCodeAt(i);
+    h = Math.imul(h, 16777619);
+  }
+  let seed = h >>> 0;
+  const rnd = ()=>{
+    seed = (Math.imul(seed, 1664525) + 1013904223) >>> 0;
+    return seed / 4294967296;
+  };
+
+  ctx.fillStyle = '#0b1220';
+  for(let y = 0; y < N; y++){
+    for(let x = 0; x < N; x++){
+      if(inFinder(x, y, N)) continue;
+      if(rnd() > 0.52) ctx.fillRect(x * cs, y * cs, cs, cs);
+    }
+  }
+
+  const finder = (fx, fy)=>{
+    ctx.fillStyle = '#0b1220';
+    ctx.fillRect(fx * cs, fy * cs, 7 * cs, 7 * cs);
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect((fx + 1) * cs, (fy + 1) * cs, 5 * cs, 5 * cs);
+    ctx.fillStyle = '#0b1220';
+    ctx.fillRect((fx + 2) * cs, (fy + 2) * cs, 3 * cs, 3 * cs);
+  };
+  finder(0, 0);
+  finder(N - 7, 0);
+  finder(0, N - 7);
+
+  // centre logo dot
+  ctx.fillStyle = '#0a8f76';
+  ctx.beginPath();
+  ctx.arc(canvas.width / 2, canvas.height / 2, cs * 2.2, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.fillStyle = '#ffffff';
+  ctx.font = 'bold ' + Math.round(cs * 3) + 'px sans-serif';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText('◆', canvas.width / 2, canvas.height / 2 + 1);
+}
+
+/* =========================================================
+   16. RESULT ACTIONS
+   ========================================================= */
+$('printBtn').onclick = ()=>{
+  toast('⬇ Generating PDF certificate…');
+  setTimeout(()=> window.print(), 500);
+};
+
+$('shareBtn').onclick = ()=>{
+  const txt = 'My FutureAlign certificate ' + state.certId + ' — verified.';
+  if(navigator.clipboard) navigator.clipboard.writeText(txt).catch(()=>{});
+  toast('🔗 Verification link copied to clipboard');
+};
+
+$('retakeBtn').onclick = ()=>{
+  state.voiceIdx = 0;
+  state.voiceScores = [];
+  state.quizIdx = 0;
+  state.quizCorrect = 0;
+  state.videoScores = null;
+  videoFile = null;
+  $('mediaBox').style.display = 'none';
+  $('dropzone').style.display = 'block';
+  $('fileInput').value = '';
+  $('analyzeBtn').disabled = true;
+  document.querySelectorAll('#analysisList li').forEach(li=>{
+    li.classList.remove('active','done');
+    li.querySelector('.tick').textContent = '○';
+  });
+  goScreen('home', 1);
+};
+
+/* =========================================================
+   17. INIT
+   ========================================================= */
+renderTradeGrid();
+applyLang();
+goScreen('home', 1);
+</script>
+</body>
+</html>
